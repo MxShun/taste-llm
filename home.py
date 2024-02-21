@@ -30,5 +30,5 @@ if question:
     with st.spinner(text="うーん..."):
         answer = index.as_query_engine().query(question)
         st.write(answer.response)
-        # todo アプリケーションログとして source_nodes を出力する
+        # todo: アプリケーションログとして source_nodes を出力する
         # st.info(answer.source_nodes)
