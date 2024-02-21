@@ -9,38 +9,23 @@ st.title(st.secrets.TITLE)
 
 index = st.session_state.get("index")
 
-
-def on_change_file():
-    if "index" in st.session_state:
-        st.session_state.pop("index")
-
-
-uploaded_file = st.file_uploader(
-    label="Q&A対象のファイル", type="pdf", on_change=on_change_file
-)
-
-
-if uploaded_file and index is None:
+if index is None:
     with st.spinner(text="準備中..."):
-        with tempfile.NamedTemporaryFile() as f:
-            f.write(uploaded_file.getbuffer())
+        documents = PDFReader().load_data(file=Path("./pdf/sample_min.pdf"))
 
-            documents = PDFReader().load_data(file=Path(f.name))
+        llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+        service_context = ServiceContext.from_defaults(llm=llm)
+        index = VectorStoreIndex.from_documents(
+            documents=documents, service_context=service_context
+        )
+        st.session_state["index"] = index
 
-            llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
-            service_context = ServiceContext.from_defaults(llm=llm)
 
-            index = VectorStoreIndex.from_documents(
-                documents=documents, service_context=service_context
-            )
-            st.session_state["index"] = index
+question = st.text_input(label="質問")
 
-if index is not None:
-    question = st.text_input(label="質問")
-
-    if question:
-        with st.spinner(text="考え中..."):
-            query_engine = index.as_query_engine()
-            answer = query_engine.query(question)
-            st.write(answer.response)
-            # st.info(answer.source_nodes)
+if question:
+    with st.spinner(text="考え中..."):
+        query_engine = index.as_query_engine()
+        answer = query_engine.query(question)
+        st.write(answer.response)
+        st.info(answer.source_nodes)
