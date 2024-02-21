@@ -43,4 +43,4 @@ if index is not None:
             query_engine = index.as_query_engine()
             answer = query_engine.query(question)
             st.write(answer.response)
-            st.info(answer.source_nodes)
+            # st.info(answer.source_nodes)
